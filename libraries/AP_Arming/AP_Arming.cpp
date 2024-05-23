@@ -55,6 +55,7 @@
 #include <AP_Vehicle/AP_Vehicle_Type.h>
 #include <AP_Scheduler/AP_Scheduler.h>
 #include <AP_KDECAN/AP_KDECAN.h>
+#include <AP_KAIYECAN/AP_KAIYECAN.h>
 #include <AP_Vehicle/AP_Vehicle.h>
 
 #if HAL_MAX_CAN_PROTOCOL_DRIVERS
@@ -756,7 +757,7 @@ bool AP_Arming::rc_arm_checks(AP_Arming::Method method)
         if (!rc().option_is_enabled(RC_Channels::Option::ARMING_SKIP_CHECK_RPY)) {
             const char *names[3] = {"Roll", "Pitch", "Yaw"};
             const uint8_t channels[3] = {rcmap->roll(), rcmap->pitch(), rcmap->yaw()};
-            for (uint8_t i = 0; i < ARRAY_SIZE(channels); i++) {
+            for (uint8_t i = 2; i < ARRAY_SIZE(channels); i++) {
                 const RC_Channel *c = rc().channel(channels[i] - 1);
                 if (c == nullptr) {
                     continue;
@@ -1258,7 +1259,7 @@ bool AP_Arming::can_checks(bool report)
                 case AP_CAN::Protocol::Scripting:
                 case AP_CAN::Protocol::Scripting2:
                 case AP_CAN::Protocol::KDECAN:
-
+                case AP_CAN::Protocol::KAIYECAN:
                     break;
             }
         }
