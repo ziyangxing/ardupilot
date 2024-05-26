@@ -106,7 +106,7 @@ void ModeLoiter::run()
 
         //landing into certent alt detected
         bool rangefinder_check = (copter.rangefinder_alt_ok() && copter.rangefinder_state.alt_cm_filt.get() < LAND_RANGEFINDER_MIN_ALT_CM);
-        //  gcs().send_text(MAV_SEVERITY_INFO, "alt :%f m", copter.rangefinder_state.alt_cm_filt.get());
+        //  gcs().send_text(MAV_SEVERITY_INFO, "alt :%f", copter.rangefinder_state.alt_cm_filt.get());
         static bool descending = false;
         int16_t land_control_in = channel_throttle->get_control_in();
 
