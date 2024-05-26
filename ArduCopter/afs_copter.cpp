@@ -1,7 +1,7 @@
 /*
   copter specific AP_AdvancedFailsafe class
  */
-
+hhh
 #include "Copter.h"
 
 #if ADVANCED_FAILSAFE == ENABLED
