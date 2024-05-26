@@ -41,14 +41,14 @@ const AP_Param::GroupInfo AP_ADRC::var_info[] = {
 
 //     memset(&_pid_info, 0, sizeof(_pid_info));
 // }
-// 在构造函数中，使用 set() 函数设置 _b0 的值
+// 锟节癸拷锟届函锟斤拷锟叫ｏ拷使锟斤拷 set() 锟斤拷锟斤拷锟斤拷锟斤拷 _b0 锟斤拷值
 AP_ADRC::AP_ADRC(float B0, float dt) : AC_PID(1, 1, 1, 1.0f, 1, 1, 1.0f, 1, dt)
 {
     AP_Param::setup_object_defaults(this, var_info);
     _dt = dt;
-    _b0.set(B0); // 使用 set() 函数设置 _b0 的值
+    _b0.set(B0); // 使锟斤拷 set() 锟斤拷锟斤拷锟斤拷锟斤拷 _b0 锟斤拷值
 
-    // 重置输入滤波器为收到的第一个值
+    // 锟斤拷锟斤拷锟斤拷锟斤拷锟剿诧拷锟斤拷为锟秸碉拷锟侥碉拷一锟斤拷值
     _flags.reset_filter = true;
 
     memset(&_pid_info, 0, sizeof(_pid_info));
