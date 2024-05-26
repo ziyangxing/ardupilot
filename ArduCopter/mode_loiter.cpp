@@ -112,7 +112,7 @@ void ModeLoiter::run()
         // gcs().send_text(MAV_SEVERITY_INFO, "get in :%d", land_control_in);
         if(land_control_in < 490 && rangefinder_check)
         {
-            gcs().send_text(MAV_SEVERITY_INFO, "descending  :%d",land_control_in);
+            // gcs().send_text(MAV_SEVERITY_INFO, "descending  :%d",land_control_in);
             static uint32_t hover_start_time = 0;
             if(!descending)
             {
@@ -134,7 +134,7 @@ void ModeLoiter::run()
                 }else
                 {
                     land_control_in = 510;
-                    gcs().send_text(MAV_SEVERITY_INFO, "510");
+                    // gcs().send_text(MAV_SEVERITY_INFO, "510");
                 }
             }
 
