@@ -109,7 +109,7 @@ void ModeLoiter::run()
         //  gcs().send_text(MAV_SEVERITY_INFO, "alt :%f m", copter.rangefinder_state.alt_cm_filt.get());
         static bool descending = false;
         int16_t land_control_in = channel_throttle->get_control_in();
-        // gcs().send_text(MAV_SEVERITY_INFO, "get in :%d", land_control_in);
+
         if(land_control_in < 490 && rangefinder_check)
         {
             // gcs().send_text(MAV_SEVERITY_INFO, "descending  :%d",land_control_in);
