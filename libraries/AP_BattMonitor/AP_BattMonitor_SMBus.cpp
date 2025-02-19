@@ -1,5 +1,5 @@
 #include "AP_BattMonitor_config.h"
-
+#include <GCS_MAVLink/GCS.h>
 #if AP_BATTERY_SMBUS_ENABLED
 
 #include "AP_BattMonitor_SMBus.h"
@@ -49,10 +49,10 @@ AP_BattMonitor_SMBus::AP_BattMonitor_SMBus(AP_BattMonitor &mon,
 
 void AP_BattMonitor_SMBus::init(void)
 {
-    _dev = hal.i2c_mgr->get_device(_bus, _address, 100000, true, 20);
+    _dev = hal.i2c_mgr->get_device(_bus, _address, 50000, true, 20);
     
     if (_dev) {
-        timer_handle = _dev->register_periodic_callback(100000, FUNCTOR_BIND_MEMBER(&AP_BattMonitor_SMBus::timer, void));
+        timer_handle = _dev->register_periodic_callback(50000, FUNCTOR_BIND_MEMBER(&AP_BattMonitor_SMBus::timer, void));
     }
 }
 
@@ -85,13 +85,48 @@ void AP_BattMonitor_SMBus::read(void)
 // returns if we already knew the pack capacity
 void AP_BattMonitor_SMBus::read_full_charge_capacity(void)
 {
-    if (_full_charge_capacity != 0) {
-        return;
-    }
+    // static uint8_t cnt = 0;
+    // uint16_t _full_charge_cap_data = 0;
+    // static uint16_t _full_charge_cap_temp = 0;
+    // if (_full_charge_capacity != 0) {
+    //     return;
+    // }
+    // if(cnt>20)
+    // {
+    //     // _full_charge_capacity *= get_capacity_scaler();
+    //     if( _full_charge_cap_temp != 0)
+    //     {
+    //       _full_charge_capacity = _full_charge_cap_temp;
+    //       return;
+    //     }else{
+    //       cnt = 0;
+    //     }
+    // }
+    // if (_full_charge_capacity != 0) 
+    // {
+        if (read_word(BATTMONITOR_SMBUS_FULL_CHARGE_CAPACITY, _full_charge_capacity)) 
+        {
+             _full_charge_capacity *= get_capacity_scaler();
+            // if(_full_charge_cap_data == _full_charge_cap_temp)
+            // {
+            //     cnt++;
+            // }else
+            // {
+            //     cnt = 0;
+            // }
+            // _full_charge_cap_temp = _full_charge_cap_data;
+        }
 
-    if (read_word(BATTMONITOR_SMBUS_FULL_CHARGE_CAPACITY, _full_charge_capacity)) {
-        _full_charge_capacity *= get_capacity_scaler();
-    }
+    // }
+
+    // if (read_word(BATTMONITOR_SMBUS_FULL_CHARGE_CAPACITY, _full_charge_capacity)) {
+    //     _full_charge_capacity *= get_capacity_scaler();
+    //     if(_full_charge_capacity>1000)
+    //     {
+    //         _full_charge_capacity = 977;
+    //     }
+    // }
+    // gcs().send_text(MAV_SEVERITY_CRITICAL,"full cap:%d ", _full_charge_capacity);
 }
 
 // reads the remaining capacity
@@ -100,16 +135,33 @@ void AP_BattMonitor_SMBus::read_remaining_capacity(void)
 {
     if (read_word(BATTMONITOR_SMBUS_FULL_CHARGE_CAPACITY, _full_charge_capacity)) {
         _full_charge_capacity *= get_capacity_scaler();
+        // gcs().send_text(MAV_SEVERITY_CRITICAL,"full cap:%d ", _full_charge_capacity);
     }
     int32_t capacity = _full_charge_capacity;// _params._pack_capacity;
 
     if (capacity <= 0) {
         return;
     }
-
+    // static uint16_t remain_data = 0;
+    // static uint8_t cnt = 0;
     uint16_t data;
-    if (read_word(BATTMONITOR_SMBUS_REMAINING_CAPACITY, data)) {
-        _state.consumed_mah = MAX(0, capacity - (data * get_capacity_scaler()));
+    if (read_word(BATTMONITOR_SMBUS_REMAINING_CAPACITY, data)) 
+    {
+        // gcs().send_text(MAV_SEVERITY_CRITICAL,"remain_mah:%d ", data);
+        // if(data == remain_data)
+        // {
+        //     cnt++;
+        // }else
+        // {
+        //     cnt = 0;
+        // }
+        // remain_data = data;
+        // if(cnt>50)
+        // {
+          _state.consumed_mah = MAX(0, capacity - (data * get_capacity_scaler()));
+        //   cnt = 0;
+        // }
+        // gcs().send_text(MAV_SEVERITY_CRITICAL,"remain_mah:%d ", data);
     }
 }
 
@@ -117,6 +169,9 @@ void AP_BattMonitor_SMBus::read_remaining_capacity(void)
 void AP_BattMonitor_SMBus::read_temp(void)
 {
     uint16_t data;
+    // static uint16_t temp_data = 0;
+    // static uint8_t cnt = 8;
+
     if (!read_word(BATTMONITOR_SMBUS_TEMP, data)) {
         _has_temperature = (AP_HAL::millis() - _state.temperature_time) <= AP_BATT_MONITOR_TIMEOUT;
         return;
@@ -124,7 +179,21 @@ void AP_BattMonitor_SMBus::read_temp(void)
     _has_temperature = true;
 
     _state.temperature_time = AP_HAL::millis();
-    _state.temperature = KELVIN_TO_C(0.1f * data);
+    // if(data == temp_data)
+    // {
+    //     cnt++;
+    // }else
+    // {
+    //     cnt = 0;
+    // }
+    // temp_data = data;
+    // if(cnt > 10)
+    // {
+    //     cnt = 0;
+       _state.temperature = KELVIN_TO_C(0.1f * data);
+    // }
+
+    
 }
 
 // reads the serial number if it's not already known

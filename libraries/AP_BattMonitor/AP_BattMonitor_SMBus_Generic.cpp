@@ -6,7 +6,7 @@
 #include <AP_Common/AP_Common.h>
 #include <AP_Math/AP_Math.h>
 #include "AP_BattMonitor.h"
-
+#include <GCS_MAVLink/GCS.h>
 #include "AP_BattMonitor_SMBus_Generic.h"
 
 uint8_t smbus_cell_ids[] = { 0x3f,  // cell 1
@@ -130,6 +130,7 @@ void AP_BattMonitor_SMBus_Generic::timer()
     read_serial_number();
 
     read_cycle_count();
+    // gcs().send_text(MAV_SEVERITY_CRITICAL,"timer batt");
 }
 
 // check if PEC supported with the version value in SpecificationInfo() function

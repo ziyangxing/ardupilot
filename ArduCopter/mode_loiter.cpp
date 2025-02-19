@@ -114,7 +114,7 @@ void ModeLoiter::run()
         {
                     // gcs().send_text(MAV_SEVERITY_INFO, "descending  :%d",land_control_in);
             static uint32_t hover_start_time = 0;
-            if(copter.rangefinder_state.alt_cm_filt.get() < LAND_RANGEFINDER_MIN_ALT_CM)
+            if(copter.rangefinder_state.alt_cm_filt.get() < LAND_RANGEFINDER_MIN_ALT_CM || descending)
             {
                 if(!descending)
                 {
@@ -126,35 +126,35 @@ void ModeLoiter::run()
                     if (current_time - hover_start_time >= 3000) 
                     {
                         // set vertical speed and acceleration limits
-                        pos_control->set_max_speed_accel_z(-(28), g.pilot_speed_up, g.pilot_accel_z);
-                        pos_control->set_correction_speed_accel_z(-(28), g.pilot_speed_up, g.pilot_accel_z);
+                        pos_control->set_max_speed_accel_z(-(30), g.pilot_speed_up, g.pilot_accel_z);
+                        pos_control->set_correction_speed_accel_z(-(30), g.pilot_speed_up, g.pilot_accel_z);
                         
                         // get pilot desired climb rate
                         target_climb_rate = get_pilot_desired_climb_rate(land_control_in);
-                        target_climb_rate = constrain_float(target_climb_rate, -(28), g.pilot_speed_up);
+                        target_climb_rate = constrain_float(target_climb_rate, -(30), g.pilot_speed_up);
                         hover_start_time = millis() - 3000;
                     }else
                     {
-                        land_control_in = 510;
+                        land_control_in = 502;
                         // gcs().send_text(MAV_SEVERITY_INFO, "510");
                     }
                 }
-            }else if(copter.rangefinder_state.alt_cm_filt.get() < 400)
+            }else if(copter.rangefinder_state.alt_cm_filt.get() < 300)
             {
-                pos_control->set_max_speed_accel_z(-(60), g.pilot_speed_up, g.pilot_accel_z);
-                pos_control->set_correction_speed_accel_z(-(60), g.pilot_speed_up, g.pilot_accel_z);
+                pos_control->set_max_speed_accel_z(-(100), g.pilot_speed_up, g.pilot_accel_z);
+                pos_control->set_correction_speed_accel_z(-(100), g.pilot_speed_up, g.pilot_accel_z);
 
                 // get pilot desired climb rate
                 target_climb_rate = get_pilot_desired_climb_rate(land_control_in);
-                target_climb_rate = constrain_float(target_climb_rate, -(60), g.pilot_speed_up);
+                target_climb_rate = constrain_float(target_climb_rate, -(100), g.pilot_speed_up);
             }else
             {
-                pos_control->set_max_speed_accel_z(-(120), g.pilot_speed_up, g.pilot_accel_z);
-                pos_control->set_correction_speed_accel_z(-(120), g.pilot_speed_up, g.pilot_accel_z);
+                pos_control->set_max_speed_accel_z(-(150), g.pilot_speed_up, g.pilot_accel_z);
+                pos_control->set_correction_speed_accel_z(-(150), g.pilot_speed_up, g.pilot_accel_z);
 
                 // get pilot desired climb rate
                 target_climb_rate = get_pilot_desired_climb_rate(land_control_in);
-                target_climb_rate = constrain_float(target_climb_rate, -(120), g.pilot_speed_up);
+                target_climb_rate = constrain_float(target_climb_rate, -(150), g.pilot_speed_up);
             }
 
         }else
