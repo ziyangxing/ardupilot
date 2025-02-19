@@ -1,0 +1,275 @@
+/*
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+#pragma once
+
+#include <AP_HAL/AP_HAL.h>
+#include "AP_AHRS/AP_AHRS.h"
+#include "AP_SerialManager/AP_SerialManager.h"
+#include <GCS_MAVLink/GCS_MAVLink.h>
+#include <AP_HAL/AP_HAL_Boards.h>
+#include <GCS_MAVLink/GCS.h>
+//
+//
+#define QHFC_COMMAND_ONOFF       (0x80)
+
+#define QHFC_CMD_PARAM_NONE     (0x00)
+#define QHFC_CMD_PARAM_ON       (0x55)
+#define QHFC_CMD_PARAM_OFF      (0xAA)
+
+#define CMD_TIMEOUT_MAX         (300)
+#define CMD_RETRY_CNT           (3)
+#define CMD_SYN_TIME           (6000)
+
+//
+#define QHFC_TEMP_MIN           (-600)      //-600 -> -60degree
+#define QHFC_TEMP_MAX           (3000)      //3000 -> 300degree
+
+#define QHFC_RECVBUF_SIZE       (128)
+
+#define QHFC_PACKETLOSTCNT_MAX  (8)
+
+#define QHFC_V1_WARNING_VOLTAGELOW      (0x0001)
+#define QHFC_V1_WARNING_TEMPHIGH        (0x0002)
+#define QHFC_V1_WARNING_PRESSLOW        (0x0004)
+#define QHFC_V1_WARNING_FANSPEED        (0x0008)
+#define QHFC_V1_WARNING_PERFORMLOW      (0x0010)
+#define QHFC_V1_WARNING_LIVOLTAGELOW    (0x0020)
+
+#define QHFC_V1_FAULT_VOLTAGELOW        (0x0001)
+#define QHFC_V1_FAULT_TEMPHIGH          (0x0002)
+#define QHFC_V1_FAULT_PRESSLOW          (0x0004)
+#define QHFC_V1_FAULT_H2LEAKAGE         (0x0008)
+#define QHFC_V1_FAULT_CELLLEAKAGE       (0x0010)
+
+#define QHFC_V2_OFF                     (0x00000000)
+#define QHFC_V2_ON                      (0x00000001)
+
+#define QHFC_V2_HPSACT                  (0x00000000)
+#define QHFC_V2_HPSLOST                 (0x00400000)
+
+#define QHFC_GC_STA1_LIVOTAGELOW        (4)
+#define QHFC_GC_STA1_H2LEAKGE           (6)
+#define QHFC_GC_STA1_CELLLEAKGE         (8)
+
+#define QHFC_GC_STA2_PRESS              (0)
+#define QHFC_GC_STA2_TEMP               (6)
+#define QHFC_GC_STA2_FCVOLTAG           (12)
+#define QHFC_GC_STA2_FANSPEED           (18)
+#define QHFC_GC_STA2_PERFORMLOW         (24)
+
+#define QHFC_GC_WARNING                 (1)
+#define QHFC_GC_FAULT                   (2)
+
+#define QHFC_GC_STA2_FC1                     (0x00000004)
+#define QHFC_GC_STA2_FC2                     (0x00000008)
+#define QHFC_GC_STA2_FC3                     (0x00000010)
+#define QHFC_GC_STA2_FC4                     (0x00000020)
+
+enum class FCFailsafeAction : uint8_t {
+        NONE               = 0,
+        LAND               = 1,
+        RTL                = 2,
+        SMARTRTL           = 3
+    };
+
+typedef struct PACKED _bagQH_FCStatus{
+    uint32_t FCStatus1;
+    uint32_t FCStatus2;
+    int16_t FCTemperature[4];
+    uint16_t FCVoltage;
+    uint16_t FCCurrent;
+    uint16_t LIVoltage;
+    int16_t LICurrent;
+    uint16_t Press[4];
+    
+    uint8_t AmbHumidity;
+}QH_GCStatus;
+
+typedef struct PACKED _bagQH_HPSStatusV2{
+    uint32_t SystemTick;
+
+    uint16_t FCStatus;
+
+    uint16_t FC1Volt;
+    uint16_t FC1Current;
+    int16_t FC1Temp1;
+    int16_t FC1Temp2;
+    uint16_t FC1Error;
+    uint16_t FC1FanDuty;
+    uint16_t FC1FanSpeed1;
+    uint16_t FC1FanSpeed2;
+
+    uint16_t FC2Volt;
+    uint16_t FC2Current;
+    int16_t FC2Temp1;
+    int16_t FC2Temp2;
+    uint16_t FC2Error;
+    uint16_t FC2FanDuty;
+    uint16_t FC2FanSpeed1;
+    uint16_t FC2FanSpeed2;
+
+    uint16_t FC3Volt;
+    uint16_t FC3Current;
+    int16_t FC3Temp1;
+    int16_t FC3Temp2;
+    uint16_t FC3Error;
+    uint16_t FC3FanDuty;
+    uint16_t FC3FanSpeed1;
+    uint16_t FC3FanSpeed2;
+
+    uint16_t FC4Volt;
+    uint16_t FC4Current;
+    int16_t FC4Temp1;
+    int16_t FC4Temp2;
+    uint16_t FC4Error;
+    uint16_t FC4FanDuty;
+    uint16_t FC4FanSpeed1;
+    uint16_t FC4FanSpeed2;
+
+    uint16_t LiVolt;
+    int16_t LiCurrent;
+    uint16_t LiError;
+
+    uint16_t H2PressureH;
+    uint16_t H2PressureL;
+
+    int16_t AmbTemperature;
+    int8_t AmbHumidity;
+    int8_t AmbControlStatus;
+}QH_HPSStatusV2;
+
+typedef struct PACKED _bagQH_HPSStatusV1{
+    uint16_t Humidity;
+    uint16_t _FCV;
+    uint16_t _FCA;
+    int16_t _FCWENDU1;
+    uint16_t _FCW;
+    uint16_t _FCDCV;
+    int16_t _FCDCA;
+    int16_t _FCWENDU2;
+    uint16_t _FCKW;
+    uint32_t _FCMPA;
+
+    uint16_t Warning;
+    uint16_t Fault;
+}QH_HPSStatusV1;
+//
+class AP_QHFC_Parameters;
+ 
+class AP_QHFC {
+
+public:
+ 
+   friend class AP_QHFC_uAvionix_MAVLink;
+    AP_QHFC();
+
+
+/*不允许复制*/
+    AP_QHFC(const AP_QHFC &other) = delete;
+    AP_QHFC &operator=(const AP_QHFC&) = delete;
+    static AP_QHFC *get_singleton(void) {        //后加程序
+        return _singleton;                       //后加程序
+    }
+
+//初始化-执行所需的初始化
+    void init(const AP_SerialManager& serial_manager);
+    bool update(void);
+    void batt_close();
+    void batt_open();
+    void batt_syn_time();
+
+    int16_t CalFCTemperature(uint8_t Ch);
+    void CalFCVoltCur(uint16_t &Volt,uint16_t &Cur);
+
+    bool is_armed_old;
+    FCFailsafeAction CurAction;
+    FCFailsafeAction LastAction;
+    FCFailsafeAction handle_FC_failsafe(bool is_armed);
+
+    uint32_t last_frame_ms;
+    uint32_t last_send_frame_ms;
+//
+    uint8_t crch;
+    uint8_t chal;
+    uint16_t QHFC_crc;
+
+    uint32_t _last_frame_ms;
+    
+    QH_GCStatus GCStatus;
+    QH_HPSStatusV1 HPSStatusV1;
+    QH_HPSStatusV2 HPSStatusV2;
+
+    void Set_Cmd(uint16_t Param);
+////*************临时数据要删除****************
+uint16_t GetFCFault(void);
+uint16_t GetFCWarning(void);
+
+///////////////////////////////////////////////////////
+
+
+private:
+    static AP_QHFC *_singleton;   ////后加程序
+     
+    AP_HAL::UARTDriver *_port;    //读取 ->read
+    AP_SerialManager::SerialProtocol protocol;
+    void send();
+    void tick(void);
+
+    void batt_ask_info();
+
+    //<-- ------------------------------------------------------------------- ->//
+    uint16_t OnOff_Cmd;
+    uint16_t OnOff_Cmd_buf;
+    uint16_t OnOff_Status;
+    uint16_t OnOff_HPSAck;
+    uint32_t Cmd_Timeout_Cnt;
+    uint16_t Cmd_Retry_Cnt;
+    uint32_t PacketLostCnt;
+
+    uint16_t FCFault_Last;
+    uint16_t FCWarning_Last;
+
+    uint32_t last_tick_ms;
+
+    void packedReceived(uint8_t *buf,uint16_t len);
+    void _Send_Cmd(void);
+    void _Clear_Cmd(void);
+    void HPSStatusV2_To_GC(void);
+    void HPSStatusV1_To_GC(void);
+    void Update_GC_OnOff(void);
+    void Update_GC_HPSLost(void);
+    // uint16_t GetFCFault(void);
+    // uint16_t GetFCWarning(void);
+    void PacketLostCnt_Add(void);
+    void PacketLostCnt_Clr(void);
+    bool PacketLostCnt_IsOver(void);
+    //<-- ------------------------------------------------------------------- ->//
+    
+    uint8_t processure_state;
+    uint8_t recv_buf[QHFC_RECVBUF_SIZE];
+    uint8_t recv_cnt;
+    uint8_t data;
+    uint8_t _step;
+
+
+};
+
+////
+//
+////后加程序
+//
+namespace AP {
+    AP_QHFC &qhfc();
+};
