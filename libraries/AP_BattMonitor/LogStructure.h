@@ -4,8 +4,8 @@
 
 #define LOG_IDS_FROM_BATTMONITOR \
     LOG_BAT_MSG, \
-    LOG_BCL_MSG
-
+    LOG_BCL_MSG,\
+    LOG_QHFC_DATA_MSG
 // @LoggerMessage: BAT
 // @Description: Gathered battery data
 // @Field: TimeUS: Time since system startup
@@ -61,8 +61,29 @@ struct PACKED log_BCL {
     uint16_t cell_voltages[12]; // the format does not support more than 12 cells, the remaining cells are reported in the BCL2 message
 };
 
+struct PACKED log_QHFC {
+    LOG_PACKET_HEADER;
+    uint64_t time_us;
+    uint8_t  instance;
+    uint32_t Status;
+    int16_t FCTemperature[4];
+    // uint16_t FCVoltage;
+    // uint16_t FCCurrent;
+    // uint16_t LIVoltage;
+    // int16_t LICurrent;
+    // uint16_t Press;
+    // int16_t AmbTemperature;
+    // uint8_t AmbHumidity;
+    // uint8_t AmbControlStatus;
+};
+// { LOG_QHFC_DATA_MSG, sizeof(log_QHFC), 
+//     "QHF", "QBIhhhhHHHhHhBB",  "TimeUS,Instance,Stat,FT1,FT2,FT3,FT4,FV,FC,LV,LC,Press,AmbT,AmbH,AmbC", "s--OOOOVAVAPO%-", "F-AAAAAAAAAAAAA" , true },//"QHF"which will be showed in the log file
+
 #define LOG_STRUCTURE_FROM_BATTMONITOR        \
     { LOG_BAT_MSG, sizeof(log_BAT), \
         "BAT", "QBfffffcfBBB", "TimeUS,Inst,Volt,VoltR,Curr,CurrTot,EnrgTot,Temp,Res,RemPct,H,SH", "s#vvAaXOw%-%", "F-000C0?0000" , true },  \
     { LOG_BCL_MSG, sizeof(log_BCL), \
-        "BCL", "QBfHHHHHHHHHHHH", "TimeUS,Instance,Volt,V1,V2,V3,V4,V5,V6,V7,V8,V9,V10,V11,V12", "s#vvvvvvvvvvvvv", "F-0CCCCCCCCCCCC" , true },
+        "BCL", "QBfHHHHHHHHHHHH", "TimeUS,Instance,Volt,V1,V2,V3,V4,V5,V6,V7,V8,V9,V10,V11,V12", "s#vvvvvvvvvvvvv", "F-0CCCCCCCCCCCC" , true },\
+    { LOG_QHFC_DATA_MSG, sizeof(log_QHFC), \
+        "QHF", "QBIhhhh",  "TimeUS,Instance,Stat,FT1,FT2,FT3,FT4", "s--OOOO", "F-AAAAA" , true },
+    

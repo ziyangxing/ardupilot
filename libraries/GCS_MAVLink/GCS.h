@@ -365,6 +365,7 @@ public:
     void send_opticalflow();
     virtual void send_attitude() const;
     virtual void send_attitude_quaternion() const;
+    virtual void send_mav_message_QH_FCStatus() const;
     void send_autopilot_version() const;
     void send_extended_sys_state() const;
     void send_local_position() const;

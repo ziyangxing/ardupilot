@@ -3,6 +3,7 @@
 #include "GCS_Mavlink.h"
 #include <AP_RPM/AP_RPM_config.h>
 #include <AP_EFI/AP_EFI_config.h>
+#include <AP_QHFC/AP_QHFC.h> 
 
 MAV_TYPE GCS_Copter::frame_type() const
 {
@@ -381,7 +382,11 @@ bool GCS_MAVLINK_Copter::try_send_message(enum ap_message id)
 #endif
         break;
     }
-
+#if HAL_QH_ENABLED
+    case MSG_QH_FCSTATUS:
+        send_mav_message_QH_FCStatus();
+#endif
+        break;
     default:
         return GCS_MAVLINK::try_send_message(id);
     }
@@ -535,7 +540,8 @@ static const ap_message STREAM_EXTRA1_msgs[] = {
     MSG_SIMSTATE,
 #endif
     MSG_AHRS2,
-    MSG_PID_TUNING // Up to four PID_TUNING messages are sent, depending on GCS_PID_MASK parameter
+    MSG_PID_TUNING, // Up to four PID_TUNING messages are sent, depending on GCS_PID_MASK parameter
+    MSG_QH_FCSTATUS
 };
 static const ap_message STREAM_EXTRA2_msgs[] = {
     MSG_VFR_HUD
@@ -766,6 +772,9 @@ MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_packet(const mavlink_command_i
 {
     switch(packet.command) {
 
+    case MAV_CMD_QH_FCCONTROL:
+        return handle_command_QH_FCControl(packet);
+
     case MAV_CMD_CONDITION_YAW:
         return handle_MAV_CMD_CONDITION_YAW(packet);
 
@@ -853,6 +862,27 @@ MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_packet(const mavlink_command_i
     default:
         return GCS_MAVLINK::handle_command_int_packet(packet, msg);
     }
+}
+
+MAV_RESULT GCS_MAVLINK_Copter::handle_command_QH_FCControl(const mavlink_command_int_t &packet)
+{
+//    mavlink_qh_fccontrol_t packet;
+
+//    mavlink_msg_qh_fccontrol_decode(&msg, &packet);
+    uint16_t SubCmd = (uint16_t)packet.param1;
+    uint16_t Param = (uint16_t)packet.param2;
+
+    // AP_QHFC &qhfc = AP::qhfc();
+    // AP::kdecan()->update();
+    // gcs().send_text(MAV_SEVERITY_DEBUG, "SubCmd:%d,Param:%d",SubCmd,Param);
+    switch(SubCmd)
+    {
+        case QHFC_COMMAND_ONOFF:
+        AP::qhfc()->Set_Cmd(Param);
+            break;
+    }
+    
+    return MAV_RESULT_ACCEPTED;
 }
 
 #if HAL_MOUNT_ENABLED

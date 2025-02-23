@@ -72,6 +72,7 @@
 #include <AC_PrecLand/AC_PrecLand_config.h>
 #include <AP_OpticalFlow/AP_OpticalFlow.h>
 #include <AP_Winch/AP_Winch_config.h>
+#include <AP_QHFC/AP_QHFC.h>
 
 // Configuration
 #include "defines.h"
@@ -251,6 +252,7 @@ private:
     RC_Channel *channel_pitch;
     RC_Channel *channel_throttle;
     RC_Channel *channel_yaw;
+    AP_QHFC qhfc;
 
 #if HAL_LOGGING_ENABLED
     AP_Logger logger;
@@ -702,6 +704,7 @@ private:
     // returns true if the EKF failsafe has triggered
     bool has_ekf_failsafed() const override;
 #endif // AP_SCRIPTING_ENABLED
+    void update_QHFC(void);
     bool is_landing() const override;
     bool is_taking_off() const override;
     void rc_loop();

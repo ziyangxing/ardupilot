@@ -112,6 +112,7 @@ public:
         EFI                            = 27,
         AD7091R5                       = 28,
         Scripting                      = 29,
+        QHFC_Volt                      = 30,
     };
 
     FUNCTOR_TYPEDEF(battery_failsafe_handler_fn_t, void, const char *, const int8_t);
@@ -141,6 +142,82 @@ public:
         uint32_t    low_voltage_start_ms;      // time when voltage dropped below the minimum in milliseconds
         uint32_t    critical_voltage_start_ms; // critical voltage failsafe start timer in milliseconds
         float       temperature;               // battery temperature in degrees Celsius
+     /////////////////////////QH///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+     uint32_t battSystemTick;
+
+     uint16_t battFCStatus;
+
+     uint16_t battFC1Volt;
+     uint16_t battFC1Current;
+     int16_t battFC1Temp1;
+     int16_t battFC1Temp2;
+     uint16_t battFC1Error;
+     uint16_t battFC1FanDuty;
+     uint16_t battFC1FanSpeed1;
+     uint16_t battFC1FanSpeed2;
+
+     uint16_t battFC2Volt;
+     uint16_t battFC2Current;
+     int16_t battFC2Temp1;
+     int16_t battFC2Temp2;
+     uint16_t battFC2Error;
+     uint16_t battFC2FanDuty;
+     uint16_t battFC2FanSpeed1;
+     uint16_t battFC2FanSpeed2;
+
+     uint16_t battFC3Volt;
+     uint16_t battFC3Current;
+     int16_t battFC3Temp1;
+     int16_t battFC3Temp2;
+     uint16_t battFC3Error;
+     uint16_t battFC3FanDuty;
+     uint16_t battFC3FanSpeed1;
+     uint16_t battFC3FanSpeed2;
+
+     uint16_t battFC4Volt;
+     uint16_t battFC4Current;
+     int16_t battFC4Temp1;
+     int16_t battFC4Temp2;
+     uint16_t battFC4Error;
+     uint16_t battFC4FanDuty;
+     uint16_t battFC4FanSpeed1;
+     uint16_t battFC4FanSpeed2;
+
+     uint16_t battLiVolt;
+     int16_t battLiCurrent;
+     uint16_t battLiError;
+
+     uint16_t battH2PressureH;
+     uint16_t battH2PressureL;
+
+     int16_t battAmbTemperature;
+     int8_t battAmbControlStatus;
+
+     uint16_t battHumidity;
+     uint16_t batt_FCV;
+     uint16_t batt_FCA;
+     int16_t batt_FCWENDU1;
+     uint16_t batt_FCW;
+     uint16_t batt_FCDCV;
+     int16_t batt_FCDCA;
+     int16_t batt_FCWENDU2;
+     uint16_t batt_FCKW;
+     uint32_t batt_FCMPA;
+ 
+     uint16_t battWarning;
+     uint16_t battFault;
+
+     uint32_t battFCStatus1;
+     uint32_t battFCStatus2;
+     int16_t battFCTemperature[4];
+     uint16_t battFCVoltage;
+     uint16_t battFCCurrent;
+     uint16_t battLIVoltage;
+     int16_t battLICurrent;
+     uint16_t battPress[4];
+     
+     uint8_t battAmbHumidity;
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #if AP_TEMPERATURE_SENSOR_ENABLED
         bool        temperature_external_use;
         float       temperature_external;      // battery temperature set by an external source in degrees Celsius

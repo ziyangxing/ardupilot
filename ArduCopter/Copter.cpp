@@ -266,6 +266,8 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #if STATS_ENABLED == ENABLED
     SCHED_TASK_CLASS(AP_Stats,             &copter.g2.stats,            update,           1, 100, 171),
 #endif
+    SCHED_TASK(update_QHFC,          10,   100,  174),
+
 };
 
 void Copter::get_scheduler_tasks(const AP_Scheduler::Task *&tasks,
@@ -517,6 +519,38 @@ void Copter::update_batt_compass(void)
         compass.set_voltage(battery.voltage());
         compass.read();
     }
+}
+
+void Copter::update_QHFC(void)
+{
+    // FCFailsafeAction action;
+
+     if(qhfc.update()){
+
+    }
+    //get FC failsafe
+    // action = qhfc.handle_FC_failsafe(motors->armed());
+    // switch(action)
+    // {
+    //     case FCFailsafeAction::NONE:
+    //         break;
+    //     case FCFailsafeAction::LAND:
+    //         copter.set_mode(Mode::Number::LAND, ModeReason::BATTERY_FAILSAFE);
+    //         break;
+    //     case FCFailsafeAction::RTL:
+    //         copter.set_mode(Mode::Number::RTL, ModeReason::BATTERY_FAILSAFE);
+    //         break;
+    //     case FCFailsafeAction::SMARTRTL:
+    //         copter.set_mode(Mode::Number::SMART_RTL, ModeReason::BATTERY_FAILSAFE);
+    //         break;
+    //     default:
+    //         break;
+    // }
+
+    //is_taking_off()
+    //is_landing()
+    //is_disarmed_or_landed()
+    //AP_Arming::is_armed()
 }
 
 #if HAL_LOGGING_ENABLED

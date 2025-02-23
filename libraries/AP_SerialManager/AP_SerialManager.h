@@ -82,6 +82,8 @@ public:
         SerialProtocol_IMUOUT = 46,
         // Reserving Serial Protocol 47 for SerialProtocol_IQ
         SerialProtocol_PPP = 48,
+        SerialProtocol_QHFC_V1 = 49,                      //定义氢航科技串口通信数据类型为49
+        SerialProtocol_QHFC_V2 = 50,
         SerialProtocol_NumProtocols                    // must be the last value
     };
 

@@ -66,6 +66,7 @@
 #include <AP_KDECAN/AP_KDECAN.h>
 #include <AP_LandingGear/AP_LandingGear.h>
 #include <AP_Landing/AP_Landing_config.h>
+#include <AP_QHFC/AP_QHFC.h> 
 
 #include "MissionItemProtocol_Waypoints.h"
 #include "MissionItemProtocol_Rally.h"
@@ -1085,6 +1086,8 @@ ap_message GCS_MAVLINK::mavlink_id_to_ap_message_id(const uint32_t mavlink_id) c
 #if AP_MAVLINK_MSG_RELAY_STATUS_ENABLED
         { MAVLINK_MSG_ID_RELAY_STATUS, MSG_RELAY_STATUS},
 #endif
+        { MAVLINK_MSG_ID_QH_FCSTATUS, MSG_QH_FCSTATUS},
+
             };
 
     for (uint8_t i=0; i<ARRAY_SIZE(map); i++) {
@@ -4997,6 +5000,56 @@ MAV_RESULT GCS_MAVLINK::handle_command_do_set_roi(const Location &roi_loc)
 #endif
 }
 
+void GCS_MAVLINK::send_mav_message_QH_FCStatus() const
+{
+    // AP_QHFC *fc = AP_QHFC::get_singleton();
+
+    // uint32_t Status1,Status2;
+    // int16_t FCTemperature[4];
+    // uint16_t Press[4];
+    // uint16_t FCVoltage;
+    // uint16_t FCCurrent;
+    // uint16_t LIVoltage;
+    // int16_t LICurrent;
+    // uint8_t AmbHumidity;
+
+    #if(1)
+    // Status1 = fc->GCStatus.FCStatus1;
+    // Status2 = fc->GCStatus.FCStatus2;
+    // FCTemperature[0] = fc->GCStatus.FCTemperature[0];
+    // FCTemperature[1] = fc->GCStatus.FCTemperature[1];
+    // FCTemperature[2] = fc->GCStatus.FCTemperature[2];
+    // FCTemperature[3] = fc->GCStatus.FCTemperature[3];
+    // Press[0] = fc->GCStatus.Press[0];
+    // Press[1] = fc->GCStatus.Press[1];
+    // Press[2] = fc->GCStatus.Press[2];
+    // Press[3] = fc->GCStatus.Press[3];
+    // FCVoltage = fc->GCStatus.FCVoltage ;
+    // FCCurrent = fc->GCStatus.FCCurrent;
+    // LIVoltage = fc->GCStatus.LIVoltage;
+    // LICurrent = fc->GCStatus.LICurrent ;
+    // AmbHumidity = fc->GCStatus.AmbHumidity;
+    #else
+    Status1 = (fc->GCStatus.FCStatus1 & 0x03) | 0x00000020;
+    Status2 = 0x00000005;
+    FCTemperature[0] = 25;
+    FCTemperature[1] = 26;
+    FCTemperature[2] = 27;
+    FCTemperature[3] = 28;
+    Press[0] = 100;
+    Press[1] = 110;
+    Press[2] = 120;
+    Press[3] = 130;
+    FCVoltage = 540;
+    FCCurrent = 10;
+    LIVoltage = 480;
+    LICurrent = 5;
+    AmbHumidity = 60;
+    #endif
+
+    // mavlink_msg_qh_fcstatus_send(chan, Status1, Status2, FCTemperature, FCVoltage, FCCurrent, LIVoltage, LICurrent, Press, AmbHumidity);
+
+}
 
 void GCS_MAVLINK::handle_landing_target(const mavlink_message_t &msg)
 {
@@ -6428,6 +6481,7 @@ void GCS_MAVLINK::initialise_message_intervals_from_streamrates()
     for (uint8_t i=0; all_stream_entries[i].ap_message_ids != nullptr; i++) {
         initialise_message_intervals_for_stream(all_stream_entries[i].stream_id);
     }
+     // set_mavlink_message_id_interval(MAVLINK_MSG_ID_QH_FCSTATUS, 500);
 #if HAL_HIGH_LATENCY2_ENABLED
     if (!is_high_latency_link) {
         set_mavlink_message_id_interval(MAVLINK_MSG_ID_HEARTBEAT, 1000);

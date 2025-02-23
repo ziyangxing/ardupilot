@@ -22,6 +22,7 @@
 #include "AP_BattMonitor_Synthetic_Current.h"
 #include "AP_BattMonitor_AD7091R5.h"
 #include "AP_BattMonitor_Scripting.h"
+#include "AP_BattMonitor_QHFC.h"
 
 #include <AP_HAL/AP_HAL.h>
 
@@ -566,6 +567,11 @@ AP_BattMonitor::init()
                 drivers[instance] = new AP_BattMonitor_Scripting(*this, state[instance], _params[instance]);
                 break;
 #endif // AP_BATTERY_SCRIPTING_ENABLED
+#if AP_BATTERY_QHFC_BATTERYINFO_ENABLED
+            case Type::QHFC_Volt:
+                drivers[instance] = new AP_BattMonitor_QHFC(*this, state[instance],AP_BattMonitor_QHFC ::QHFC_BATTERY_INFO,_params[instance]);
+                break;
+#endif
             case Type::NONE:
             default:
                 break;
@@ -675,6 +681,7 @@ void AP_BattMonitor::read()
                 const uint64_t time_us = AP_HAL::micros64();
                 drivers[i]->Log_Write_BAT(i, time_us);
                 drivers[i]->Log_Write_BCL(i, time_us);
+                drivers[i]->log_Write_QHFCD(i, time_us);
             }
 #endif
         }

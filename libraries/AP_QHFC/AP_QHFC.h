@@ -21,7 +21,9 @@
 #include <AP_HAL/AP_HAL_Boards.h>
 #include <GCS_MAVLink/GCS.h>
 //
-//
+
+#define HAL_QH_ENABLED 1
+
 #define QHFC_COMMAND_ONOFF       (0x80)
 
 #define QHFC_CMD_PARAM_NONE     (0x00)
@@ -37,6 +39,7 @@
 #define QHFC_TEMP_MAX           (3000)      //3000 -> 300degree
 
 #define QHFC_RECVBUF_SIZE       (128)
+#define MR72_RECVBUF_SIZE       (128)
 
 #define QHFC_PACKETLOSTCNT_MAX  (8)
 
@@ -76,6 +79,8 @@
 #define QHFC_GC_STA2_FC2                     (0x00000008)
 #define QHFC_GC_STA2_FC3                     (0x00000010)
 #define QHFC_GC_STA2_FC4                     (0x00000020)
+
+#define MR72_Datalen 20
 
 enum class FCFailsafeAction : uint8_t {
         NONE               = 0,
@@ -174,15 +179,12 @@ public:
  
    friend class AP_QHFC_uAvionix_MAVLink;
     AP_QHFC();
-
-
+    /* Do not allow copies */
+    CLASS_NO_COPY(AP_QHFC);
 /*不允许复制*/
-    AP_QHFC(const AP_QHFC &other) = delete;
-    AP_QHFC &operator=(const AP_QHFC&) = delete;
-    static AP_QHFC *get_singleton(void) {        //后加程序
-        return _singleton;                       //后加程序
-    }
-
+    // AP_QHFC(const AP_QHFC &other) = delete;
+    // AP_QHFC &operator=(const AP_QHFC&) = delete;
+    static AP_QHFC *get_singleton() { return _singleton; }
 //初始化-执行所需的初始化
     void init(const AP_SerialManager& serial_manager);
     bool update(void);
@@ -213,9 +215,9 @@ public:
 
     void Set_Cmd(uint16_t Param);
 ////*************临时数据要删除****************
-uint16_t GetFCFault(void);
-uint16_t GetFCWarning(void);
 
+    uint16_t GetFCFault(void);
+    uint16_t GetFCWarning(void);
 ///////////////////////////////////////////////////////
 
 
@@ -250,15 +252,21 @@ private:
     void HPSStatusV1_To_GC(void);
     void Update_GC_OnOff(void);
     void Update_GC_HPSLost(void);
-    // uint16_t GetFCFault(void);
-    // uint16_t GetFCWarning(void);
+
     void PacketLostCnt_Add(void);
     void PacketLostCnt_Clr(void);
     bool PacketLostCnt_IsOver(void);
     //<-- ------------------------------------------------------------------- ->//
-    
+    uint8_t crc_crc8(const uint8_t *p, uint8_t len);
+    uint8_t Serial_GetRxFlag(void);
+    void MR72_ReceiveDataAnl(uint8_t *data_buffer, uint8_t datalen);
     uint8_t processure_state;
     uint8_t recv_buf[QHFC_RECVBUF_SIZE];
+    uint8_t MR72_RXPacket[MR72_RECVBUF_SIZE];
+    uint8_t MR72_RxFlag;
+    uint16_t sector1;
+    uint16_t sector2;
+    uint16_t sector3;
     uint8_t recv_cnt;
     uint8_t data;
     uint8_t _step;
@@ -266,10 +274,6 @@ private:
 
 };
 
-////
-//
-////后加程序
-//
 namespace AP {
-    AP_QHFC &qhfc();
+    AP_QHFC *qhfc();
 };

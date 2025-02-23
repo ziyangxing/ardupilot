@@ -88,4 +88,23 @@ void AP_BattMonitor_Backend::Log_Write_BCL(const uint8_t instance, const uint64_
 #endif
 }
 
+void AP_BattMonitor_Backend::log_Write_QHFCD(const uint8_t instance, const uint64_t time_us) const
+{
+    const struct log_QHFC pkt{
+        LOG_PACKET_HEADER_INIT(LOG_QHFC_DATA_MSG),
+            time_us             : time_us,
+            instance            : instance,
+            Status              : _state.battFCStatus1,
+            FCTemperature       : {_state.battFCTemperature[0],_state.battFCTemperature[1],_state.battFCTemperature[2],_state.battFCTemperature[3]},
+            // FCVoltage           : _state.battFC1Volt,
+            // FCCurrent           : 1,//_state.battFC1Current,
+            // LIVoltage           : _state.battLIVoltage,
+            // LICurrent           : 3,//_state.battLICurrent,
+            // Press               : 4,//_state.battPress[0],
+            // AmbTemperature      : 5,//_state.battAmbTemperature,
+            // AmbHumidity         : 6,//_state.battAmbHumidity,
+            // AmbControlStatus    : 7,//(uint8_t)_state.battAmbControlStatus
+    };
+    AP::logger().WriteBlock(&pkt, sizeof(pkt));
+}
 #endif  // HAL_LOGGING_ENABLED
