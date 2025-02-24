@@ -625,6 +625,10 @@
  # define STATS_ENABLED ENABLED
 #endif
 
+#ifndef QHFC_ENABLED
+ # define QHFC_ENABLED ENABLED
+#endif
+
 #ifndef OSD_ENABLED
  #define OSD_ENABLED DISABLED
 #endif

@@ -266,7 +266,9 @@ const AP_Scheduler::Task Copter::scheduler_tasks[] = {
 #if STATS_ENABLED == ENABLED
     SCHED_TASK_CLASS(AP_Stats,             &copter.g2.stats,            update,           1, 100, 171),
 #endif
+#if QHFC_ENABLED == ENABLED
     SCHED_TASK(update_QHFC,          10,   100,  174),
+#endif
 
 };
 

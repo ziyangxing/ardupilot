@@ -145,6 +145,9 @@ uint8_t AP_QHFC::Serial_GetRxFlag(void)
 
 bool AP_QHFC::update(void)
 {
+  if (_port == nullptr) {
+    return false;
+  }
   int16_t numc = _port->available();
   data = 0;
   if(numc <= 0)_step = 0;
