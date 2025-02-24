@@ -866,19 +866,13 @@ MAV_RESULT GCS_MAVLINK_Copter::handle_command_int_packet(const mavlink_command_i
 
 MAV_RESULT GCS_MAVLINK_Copter::handle_command_QH_FCControl(const mavlink_command_int_t &packet)
 {
-//    mavlink_qh_fccontrol_t packet;
-
-//    mavlink_msg_qh_fccontrol_decode(&msg, &packet);
     uint16_t SubCmd = (uint16_t)packet.param1;
     uint16_t Param = (uint16_t)packet.param2;
 
-    // AP_QHFC &qhfc = AP::qhfc();
-    // AP::kdecan()->update();
-    // gcs().send_text(MAV_SEVERITY_DEBUG, "SubCmd:%d,Param:%d",SubCmd,Param);
     switch(SubCmd)
     {
         case QHFC_COMMAND_ONOFF:
-        AP::qhfc()->Set_Cmd(Param);
+            AP::qhfc()->Set_Cmd(Param);
             break;
     }
     

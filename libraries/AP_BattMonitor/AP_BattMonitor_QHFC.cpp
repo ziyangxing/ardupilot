@@ -73,24 +73,24 @@ uint32_t AP_BattMonitor_QHFC::get_mavlink_fault_bitmask() const
 AP_BattMonitor::Failsafe AP_BattMonitor_QHFC::update_failsafes()
 {
     // gcs().send_text(MAV_SEVERITY_INFO, "update_failsafes");
-    // if((AP::qhfc()->GetFCFault()) || 1)
-    // {
-    //     gcs().send_text(MAV_SEVERITY_INFO, "qhfc Critical");
-    //     return AP_BattMonitor::Failsafe::Critical;
+    if((AP::qhfc()->GetFCFault()) || 1)
+    {
+        gcs().send_text(MAV_SEVERITY_INFO, "qhfc Critical");
+        return AP_BattMonitor::Failsafe::Critical;
 
-    // }
-    // else if( (AP::qhfc()->GetFCWarning() != 0))
-    // {
-    //     gcs().send_text(MAV_SEVERITY_INFO, "qhfc Low");
-    //     return AP_BattMonitor::Failsafe::Low;
-    // }
+    }
+    else if( (AP::qhfc()->GetFCWarning() != 0))
+    {
+        gcs().send_text(MAV_SEVERITY_INFO, "qhfc Low");
+        return AP_BattMonitor::Failsafe::Low;
+    }
     return AP_BattMonitor::Failsafe::None;
 }
 
 // read - read the voltage and current
 void AP_BattMonitor_QHFC::read()
 {
-    // AP_QHFC& fc = AP::qhfc();
+    AP_QHFC *fc = AP::qhfc();
     uint32_t tnow = AP_HAL::micros();
 
     // timeout after 5 seconds
@@ -99,32 +99,31 @@ void AP_BattMonitor_QHFC::read()
     }
     // gcs().send_text(MAV_SEVERITY_INFO, "QHFC::read");
     // Copy over relevant states over to main state
-    _state.temperature = 30;
+    _state.temperature = fc->GCStatus.FCTemperature[0];
 
     // _state.temperature_external_use = true;
     // _state.temperature_external = 35; 
-    _state.voltage = 120;//fc.GCStatus.FCVoltage;
-    _state.battFC1Volt = 66;
-    _state.battLIVoltage = 100;
-    _state.current_amps = 6;//fc.GCStatus.FCCurrent;
-    _state.consumed_mah = 2000;
+    _state.voltage = fc->GCStatus.FCVoltage;
+    _state.battFC1Volt = fc->GCStatus.FCVoltage;
+    _state.battLIVoltage = fc->GCStatus.LIVoltage;
+    // _state.current_amps = fc->GCStatus.FCCurrent;
+    // _state.consumed_mah = 0;
     _state.consumed_wh = 50;
     _state.last_time_micros = _interim_state.last_time_micros;
     _state.healthy = true;//_interim_state.healthy;
-    _state.time_remaining = 0;
-    _state.has_time_remaining = 0;
+    // _state.time_remaining = 0;
+    // _state.has_time_remaining = 0;
     _state.is_powering_off = _interim_state.is_powering_off;
-    _state.battFC1FanSpeed2 = 100;
-    memset(_state.cell_voltages.cells, 0, sizeof(_state.cell_voltages));
+    // _state.battFC1FanSpeed2 = fc->;
+    // memset(_state.cell_voltages.cells, 0, sizeof(_state.cell_voltages));
 
-
-    if ((AP_HAL::millis() - _state.temperature_time) > AP_BATT_MONITOR_TIMEOUT) {
+    if ((AP_HAL::millis() - _state.temperature_time) > AP_BATT_MONITOR_TIMEOUT) 
+    {
         _has_temperature = true;
         _state.temperature_time = AP_HAL::millis();
         // gcs().send_text(MAV_SEVERITY_INFO, "QHFC::read:%d",_state.battFC1FanSpeed2 );
         return; 
     }
-    _state.temperature = 10;
     
     //_has_temperature = false;//(AP_HAL::millis() - _state.temperature_time) <= AP_BATT_MONITOR_TIMEOUT;
 }

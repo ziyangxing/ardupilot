@@ -525,34 +525,11 @@ void Copter::update_batt_compass(void)
 
 void Copter::update_QHFC(void)
 {
-    // FCFailsafeAction action;
+     if(qhfc.update())
+     {
 
-     if(qhfc.update()){
+     }
 
-    }
-    //get FC failsafe
-    // action = qhfc.handle_FC_failsafe(motors->armed());
-    // switch(action)
-    // {
-    //     case FCFailsafeAction::NONE:
-    //         break;
-    //     case FCFailsafeAction::LAND:
-    //         copter.set_mode(Mode::Number::LAND, ModeReason::BATTERY_FAILSAFE);
-    //         break;
-    //     case FCFailsafeAction::RTL:
-    //         copter.set_mode(Mode::Number::RTL, ModeReason::BATTERY_FAILSAFE);
-    //         break;
-    //     case FCFailsafeAction::SMARTRTL:
-    //         copter.set_mode(Mode::Number::SMART_RTL, ModeReason::BATTERY_FAILSAFE);
-    //         break;
-    //     default:
-    //         break;
-    // }
-
-    //is_taking_off()
-    //is_landing()
-    //is_disarmed_or_landed()
-    //AP_Arming::is_armed()
 }
 
 #if HAL_LOGGING_ENABLED

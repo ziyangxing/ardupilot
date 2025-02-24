@@ -5002,33 +5002,33 @@ MAV_RESULT GCS_MAVLINK::handle_command_do_set_roi(const Location &roi_loc)
 
 void GCS_MAVLINK::send_mav_message_QH_FCStatus() const
 {
-    // AP_QHFC *fc = AP_QHFC::get_singleton();
+    AP_QHFC *fc = AP_QHFC::get_singleton();
 
-    // uint32_t Status1,Status2;
-    // int16_t FCTemperature[4];
-    // uint16_t Press[4];
-    // uint16_t FCVoltage;
-    // uint16_t FCCurrent;
-    // uint16_t LIVoltage;
-    // int16_t LICurrent;
-    // uint8_t AmbHumidity;
+    uint32_t Status1,Status2;
+    int16_t FCTemperature[4];
+    uint16_t Press[4];
+    uint16_t FCVoltage;
+    uint16_t FCCurrent;
+    uint16_t LIVoltage;
+    int16_t LICurrent;
+    uint8_t AmbHumidity;
 
     #if(1)
-    // Status1 = fc->GCStatus.FCStatus1;
-    // Status2 = fc->GCStatus.FCStatus2;
-    // FCTemperature[0] = fc->GCStatus.FCTemperature[0];
-    // FCTemperature[1] = fc->GCStatus.FCTemperature[1];
-    // FCTemperature[2] = fc->GCStatus.FCTemperature[2];
-    // FCTemperature[3] = fc->GCStatus.FCTemperature[3];
-    // Press[0] = fc->GCStatus.Press[0];
-    // Press[1] = fc->GCStatus.Press[1];
-    // Press[2] = fc->GCStatus.Press[2];
-    // Press[3] = fc->GCStatus.Press[3];
-    // FCVoltage = fc->GCStatus.FCVoltage ;
-    // FCCurrent = fc->GCStatus.FCCurrent;
-    // LIVoltage = fc->GCStatus.LIVoltage;
-    // LICurrent = fc->GCStatus.LICurrent ;
-    // AmbHumidity = fc->GCStatus.AmbHumidity;
+    Status1 = fc->GCStatus.FCStatus1;
+    Status2 = fc->GCStatus.FCStatus2;
+    FCTemperature[0] = fc->GCStatus.FCTemperature[0];
+    FCTemperature[1] = fc->GCStatus.FCTemperature[1];
+    FCTemperature[2] = fc->GCStatus.FCTemperature[2];
+    FCTemperature[3] = fc->GCStatus.FCTemperature[3];
+    Press[0] = fc->GCStatus.Press[0];
+    Press[1] = fc->GCStatus.Press[1];
+    Press[2] = fc->GCStatus.Press[2];
+    Press[3] = fc->GCStatus.Press[3];
+    FCVoltage = fc->GCStatus.FCVoltage ;
+    FCCurrent = fc->GCStatus.FCCurrent;
+    LIVoltage = fc->GCStatus.LIVoltage;
+    LICurrent = fc->GCStatus.LICurrent ;
+    AmbHumidity = fc->GCStatus.AmbHumidity;
     #else
     Status1 = (fc->GCStatus.FCStatus1 & 0x03) | 0x00000020;
     Status2 = 0x00000005;
@@ -5047,7 +5047,7 @@ void GCS_MAVLINK::send_mav_message_QH_FCStatus() const
     AmbHumidity = 60;
     #endif
 
-    // mavlink_msg_qh_fcstatus_send(chan, Status1, Status2, FCTemperature, FCVoltage, FCCurrent, LIVoltage, LICurrent, Press, AmbHumidity);
+    mavlink_msg_qh_fcstatus_send(chan, Status1, Status2, FCTemperature, FCVoltage, FCCurrent, LIVoltage, LICurrent, Press, AmbHumidity);
 
 }
 

@@ -23,7 +23,7 @@
 */
 
 #include "AP_QHFC.h"
-#define AP_SERIALMANAGER_OPEN_MV_BAUD               115200//57600
+#define AP_SERIALMANAGER_OPEN_MV_BAUD               57600
 #define AP_SERIALMANAGER_OPENMV_BUFSIZS_RX          128
 #define AP_SERIALMANAGER_OPENMV_BUFSIZS_TX          128
 //#define AP_SHEBEIDUZ                                0x01
@@ -43,60 +43,7 @@
 #include "../../ArduCopter/GCS_Mavlink.h"
 extern const AP_HAL::HAL& hal;
 AP_QHFC *AP_QHFC::_singleton;  
-// #include <stdint.h>
-// #include <string.h>
-// #include <stdbool.h>
 
-// // CRC 计算函数
-// uint16_t modbus_crc16(const uint8_t *data, size_t length) {
-//     uint16_t crc = 0xFFFF;
-//     for (size_t i = 0; i < length; i++) {
-//         crc ^= data[i];
-//         for (int j = 0; j < 8; j++) {
-//             if (crc & 0x0001) {
-//                 crc >>= 1;
-//                 crc ^= 0xA001;
-//             } else {
-//                 crc >>= 1;
-//             }
-//         }
-//     }
-//     return crc;
-// }
-
-// // 构造 Modbus RTU 请求帧
-// void build_modbus_request(uint8_t *frame, uint8_t address, uint8_t function_code, uint8_t *data, uint8_t data_length) {
-//     frame[0] = address;                  // 设备地址
-//     frame[1] = function_code;            // 功能码
-//     memcpy(&frame[2], data, data_length); // 数据字段
-
-//     // 计算 CRC 校验码
-//     uint16_t crc = modbus_crc16(frame, 2 + data_length);
-//     frame[2 + data_length] = crc & 0xFF;        // CRC 低字节
-//     frame[2 + data_length + 1] = (crc >> 8) & 0xFF; // CRC 高字节
-// }
-
-
-
-// // CRC 校验函数
-// bool verify_modbus_crc(const uint8_t *frame, size_t length) {
-//     uint16_t crc_received = (frame[length - 1] << 8) | frame[length - 2];  // 接收到的 CRC 校验码
-//     uint16_t crc_calculated = modbus_crc16(frame, length - 2);              // 计算的 CRC 校验码
-//     return crc_received == crc_calculated;
-// }
-
-// // 解析 Modbus RTU 响应帧
-// bool parse_modbus_response(const uint8_t *frame, size_t length, uint8_t *function_code, uint8_t *data, uint8_t *data_length) {
-//     if (!verify_modbus_crc(frame, length)) {
-//         return false;  // CRC 校验失败，数据无效
-//     }
-
-//     *function_code = frame[1]; // 获取功能码
-//     *data_length = length - 3; // 数据长度（去掉地址、功能码、CRC 校验码）
-
-//     memcpy(data, &frame[2], *data_length); // 获取数据字段
-//     return true;
-// }
 static const uint8_t crc8_table[] = {
   0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15, 0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 
   0x2d, 0x70, 0x77, 0x7e, 0x79, 0x6c, 0x6b, 0x62, 0x65, 0x48, 0x4f, 0x46, 0x41, 0x54, 0x53, 
@@ -143,68 +90,68 @@ uint8_t AP_QHFC::Serial_GetRxFlag(void)
 	return 0;
 }
 
-bool AP_QHFC::update(void)
-{
-  if (_port == nullptr) {
-    return false;
-  }
-  int16_t numc = _port->available();
-  data = 0;
-  if(numc <= 0)_step = 0;
-  // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72 recv num:%d",numc);
-  for(int16_t i = 0; i < numc; i++)
-  {
-    if(recv_cnt >= QHFC_RECVBUF_SIZE)_step = 0;
+// bool AP_QHFC::update(void)
+// {
+//   if (_port == nullptr) {
+//     return false;
+//   }
+//   int16_t numc = _port->available();
+//   data = 0;
+//   if(numc <= 0)_step = 0;
+//   // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72 recv num:%d",numc);
+//   for(int16_t i = 0; i < numc; i++)
+//   {
+//     if(recv_cnt >= QHFC_RECVBUF_SIZE)_step = 0;
     
-    data =_port->read();
-    switch(_step)
-    {
-      case 0:
-        recv_cnt = 0;
-				if (0x54 == data)            //如果数据确实是第一个包头
-				{
-          // recv_cnt ++;
-					_step = 1;               //置下一个状态
-					MR72_RXPacket[0] = data;    //将接受到的包头存入数组[0]
-          // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72 head recv");
-				}
-        break;
-      case 1:     //command
-        recv_buf[1] = data;
-				if (0x48 == data)            //如果数据确实是第二个包头
-				{
-          // recv_cnt++;
-					_step = 2;                //置下一个状态
-          // gcs().send_text(MAV_SEVERITY_DEBUG, "step:%d",_step);
-					MR72_RXPacket[1] = data;     //将接受到的包头存入数组[1]
-				}
-				else _step=0;
-        break;
-      case 2:     //len
-				MR72_RXPacket[2 + recv_cnt] = data;//将数据存入数据包数组的指定位置
-				recv_cnt ++;                            //数据包的位置自增
-				if ((MR72_Datalen) == recv_cnt )        //如果收满4个数据
-				{
-          _step = 3;                        //置下一个状态
-          // gcs().send_text(MAV_SEVERITY_DEBUG, "step:%d",_step);
-          MR72_ReceiveDataAnl(MR72_RXPacket, MR72_Datalen);  //数据校验及解析
-          recv_cnt = 0;            //数据包的位置归0
-          _step=0; 
-				}
-				break;
-      case 3:
-        MR72_ReceiveDataAnl(MR72_RXPacket, MR72_Datalen);  //数据校验及解析
-        recv_cnt = 0;            //数据包的位置归0
-        _step=0;        //状态归0
-        break;
-        default:
-        recv_cnt = 0;            //数据包的位置归0
-        _step=0;        //状态归0
-        break;
-    }
-  }
-  return true;
-}
+//     data =_port->read();
+//     switch(_step)
+//     {
+//       case 0:
+//         recv_cnt = 0;
+// 				if (0x54 == data)            //如果数据确实是第一个包头
+// 				{
+//           // recv_cnt ++;
+// 					_step = 1;               //置下一个状态
+// 					MR72_RXPacket[0] = data;    //将接受到的包头存入数组[0]
+//           // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72 head recv");
+// 				}
+//         break;
+//       case 1:     //command
+//         recv_buf[1] = data;
+// 				if (0x48 == data)            //如果数据确实是第二个包头
+// 				{
+//           // recv_cnt++;
+// 					_step = 2;                //置下一个状态
+//           // gcs().send_text(MAV_SEVERITY_DEBUG, "step:%d",_step);
+// 					MR72_RXPacket[1] = data;     //将接受到的包头存入数组[1]
+// 				}
+// 				else _step=0;
+//         break;
+//       case 2:     //len
+// 				MR72_RXPacket[2 + recv_cnt] = data;//将数据存入数据包数组的指定位置
+// 				recv_cnt ++;                            //数据包的位置自增
+// 				if ((MR72_Datalen) == recv_cnt )        //如果收满4个数据
+// 				{
+//           _step = 3;                        //置下一个状态
+//           // gcs().send_text(MAV_SEVERITY_DEBUG, "step:%d",_step);
+//           MR72_ReceiveDataAnl(MR72_RXPacket, MR72_Datalen);  //数据校验及解析
+//           recv_cnt = 0;            //数据包的位置归0
+//           _step=0; 
+// 				}
+// 				break;
+//       case 3:
+//         MR72_ReceiveDataAnl(MR72_RXPacket, MR72_Datalen);  //数据校验及解析
+//         recv_cnt = 0;            //数据包的位置归0
+//         _step=0;        //状态归0
+//         break;
+//         default:
+//         recv_cnt = 0;            //数据包的位置归0
+//         _step=0;        //状态归0
+//         break;
+//     }
+//   }
+//   return true;
+// }
 void AP_QHFC::MR72_ReceiveDataAnl(uint8_t *data_buffer, uint8_t datalen)
 {
 	uint8_t crc8;
@@ -373,73 +320,73 @@ void AP_QHFC::packedReceived(uint8_t *buf,uint16_t len)
   }
 }
 
-// bool AP_QHFC::update()//10HZ run in copter schedule task
-// {
-//   if (_port == NULL) 
-//     return false;   
+bool AP_QHFC::update()//10HZ run in copter schedule task
+{
+  if (_port == nullptr) {
+    return false;
+  }
+  Update_GC_OnOff();
+  Update_GC_HPSLost();
+  int16_t numc = _port->available();
+  data = 0;
 
-//   Update_GC_OnOff();
-//   Update_GC_HPSLost();
-//   int16_t numc = _port->available();
-//   data = 0;
+  if(numc <= 0)_step = 0;
 
-//   if(numc <= 0)_step = 0;
-
-//   for(int16_t i = 0; i < numc; i++)
-//   {
-//     if(recv_cnt >= QHFC_RECVBUF_SIZE)_step = 0;
+  for(int16_t i = 0; i < numc; i++)
+  {
+    if(recv_cnt >= QHFC_RECVBUF_SIZE)_step = 0;
     
-//     data =_port->read();
-//     // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72:%d",data);
-//     switch(_step)
-//     {
-//       case 0:
-//         recv_cnt = 0;
-//         recv_buf[recv_cnt] = data;
-//         if(recv_buf[0] == (0x01))
-//         {
-//           recv_cnt ++;
-//           _step = 1;
-//         }
-//         break;
-//       case 1:     //command
-//         recv_buf[recv_cnt] = data;
-//         recv_cnt++;
-//         _step = 2;
-//         break;
-//       case 2:     //len
-//         recv_buf[recv_cnt] = data;          
-//         recv_cnt ++;
-//         _step = 3;
-//         break;
-//       case 3:
-//         recv_buf[recv_cnt] = data;
-//         recv_cnt ++;
-//         //------------------------------------------//
-//         uint16_t payload_len;
-//         if((recv_buf[1] == 0x06) && (protocol == AP_SerialManager::SerialProtocol_QHFC_V1))
-//           payload_len = 3;
-//         else
-//           payload_len = recv_buf[2];
-//         //------------------------------------------//
-//         if(recv_cnt == payload_len + 5)
-//         {
-//           QHFC_crc = calc_crc_modbus(recv_buf, recv_cnt - 2);
-//           crch = QHFC_crc >> 8;
-//           chal = QHFC_crc & 0xFF;
+    data =_port->read();
+    // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72:%d",data);
+    switch(_step)
+    {
+      case 0:
+        recv_cnt = 0;
+        recv_buf[recv_cnt] = data;
+        if(recv_buf[0] == (0x01))
+        {
+          recv_cnt ++;
+          _step = 1;
+        }
+        break;
+      case 1:     //command
+        recv_buf[recv_cnt] = data;
+        recv_cnt++;
+        _step = 2;
+        break;
+      case 2:     //len
+        recv_buf[recv_cnt] = data;          
+        recv_cnt ++;
+        _step = 3;
+        break;
+      case 3:
+        recv_buf[recv_cnt] = data;
+        recv_cnt ++;
+        //------------------------------------------//
+        uint16_t payload_len;
+        if((recv_buf[1] == 0x06) && (protocol == AP_SerialManager::SerialProtocol_QHFC_V1))
+          payload_len = 3;
+        else
+          payload_len = recv_buf[2];
+        //------------------------------------------//
+        if(recv_cnt == payload_len + 5)
+        {
+          QHFC_crc = calc_crc_modbus(recv_buf, recv_cnt - 2);
+          crch = QHFC_crc >> 8;
+          chal = QHFC_crc & 0xFF;
 
-//           if((recv_buf[recv_cnt - 2] == chal) && (recv_buf[recv_cnt - 1] == crch))//crc verified
-//           {
-//             packedReceived(recv_buf,recv_cnt);//decode package reveived
-//             PacketLostCnt_Clr();
-//           }
-//           _step = 0;
-//         }
-//         break;
-//     }
-//   }
-//   return false;
-// }
+          if((recv_buf[recv_cnt - 2] == chal) && (recv_buf[recv_cnt - 1] == crch))//crc verified
+          {
+            packedReceived(recv_buf,recv_cnt);//decode package reveived
+            PacketLostCnt_Clr();
+          }
+          _step = 0;
+        }
+        break;
+    }
+  }
+  return false;
+}
 
 //////
 void AP_QHFC::HPSStatusV2_To_GC(void)//turn HPS_STATE INTO GC_FC STATE
