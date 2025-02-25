@@ -17,7 +17,6 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AP_AHRS/AP_AHRS.h"
 #include "AP_SerialManager/AP_SerialManager.h"
-#include <GCS_MAVLink/GCS_MAVLink.h>
 #include <AP_HAL/AP_HAL_Boards.h>
 #include <GCS_MAVLink/GCS.h>
 //
@@ -39,7 +38,6 @@
 #define QHFC_TEMP_MAX           (3000)      //3000 -> 300degree
 
 #define QHFC_RECVBUF_SIZE       (128)
-#define MR72_RECVBUF_SIZE       (128)
 
 #define QHFC_PACKETLOSTCNT_MAX  (8)
 
@@ -79,8 +77,6 @@
 #define QHFC_GC_STA2_FC2                     (0x00000008)
 #define QHFC_GC_STA2_FC3                     (0x00000010)
 #define QHFC_GC_STA2_FC4                     (0x00000020)
-
-#define MR72_Datalen 20
 
 enum class FCFailsafeAction : uint8_t {
         NONE               = 0,
@@ -257,16 +253,8 @@ private:
     void PacketLostCnt_Clr(void);
     bool PacketLostCnt_IsOver(void);
     //<-- ------------------------------------------------------------------- ->//
-    uint8_t crc_crc8(const uint8_t *p, uint8_t len);
-    uint8_t Serial_GetRxFlag(void);
-    void MR72_ReceiveDataAnl(uint8_t *data_buffer, uint8_t datalen);
     uint8_t processure_state;
     uint8_t recv_buf[QHFC_RECVBUF_SIZE];
-    uint8_t MR72_RXPacket[MR72_RECVBUF_SIZE];
-    uint8_t MR72_RxFlag;
-    uint16_t sector1;
-    uint16_t sector2;
-    uint16_t sector3;
     uint8_t recv_cnt;
     uint8_t data;
     uint8_t _step;

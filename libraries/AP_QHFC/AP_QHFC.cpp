@@ -28,147 +28,13 @@
 #define AP_SERIALMANAGER_OPENMV_BUFSIZS_TX          128
 //#define AP_SHEBEIDUZ                                0x01
 #include <AP_SerialManager/AP_SerialManager.h>
-//
 #include <AP_Math/crc.h>
-//
-//
-//#include "AP_ADSB_uAvionix_MAVLink.h"
-//#include "AP_ADSB_Sagetech.h"
-//#include <AP_Vehicle/AP_Vehicle.h>   //后加程序
-#include <GCS_MAVLink/GCS.h>     //后加程序
-#include <AP_Logger/AP_Logger.h>   //后加程序
-//
+#include <AP_Math/AP_Math.h>
+#include <AP_Notify/AP_Notify.h>
 #include <AP_BattMonitor/AP_BattMonitor.h>
-#include "../../GCS_MAVLink/GCS.h"
-#include "../../ArduCopter/GCS_Mavlink.h"
+
 extern const AP_HAL::HAL& hal;
 AP_QHFC *AP_QHFC::_singleton;  
-
-static const uint8_t crc8_table[] = {
-  0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15, 0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 
-  0x2d, 0x70, 0x77, 0x7e, 0x79, 0x6c, 0x6b, 0x62, 0x65, 0x48, 0x4f, 0x46, 0x41, 0x54, 0x53, 
-  0x5a, 0x5d, 0xe0, 0xe7, 0xee, 0xe9, 0xfc, 0xfb, 0xf2, 0xf5, 0xd8, 0xdf, 0xd6, 0xd1, 0xc4, 
-  0xc3, 0xca, 0xcd, 0x90, 0x97, 0x9e, 0x99, 0x8c, 0x8b, 0x82, 0x85, 0xa8, 0xaf, 0xa6, 0xa1, 
-  0xb4, 0xb3, 0xba, 0xbd, 0xc7, 0xc0, 0xc9, 0xce, 0xdb, 0xdc, 0xd5, 0xd2, 0xff, 0xf8, 0xf1,
-  0xf6, 0xe3, 0xe4, 0xed, 0xea, 0xb7, 0xb0, 0xb9, 0xbe, 0xab, 0xac, 0xa5, 0xa2, 0x8f, 0x88,
-  0x81, 0x86, 0x93, 0x94, 0x9d, 0x9a, 0x27, 0x20, 0x29, 0x2e, 0x3b, 0x3c, 0x35, 0x32, 0x1f,
-  0x18, 0x11, 0x16, 0x03, 0x04, 0x0d, 0x0a, 0x57, 0x50, 0x59, 0x5e, 0x4b, 0x4c, 0x45, 0x42, 
-  0x6f, 0x68, 0x61, 0x66, 0x73, 0x74, 0x7d, 0x7a, 0x89, 0x8e, 0x87, 0x80,0x95,  0x92, 0x9b,
-  0x9c, 0xb1, 0xb6, 0xbf, 0xb8, 0xad, 0xaa, 0xa3, 0xa4, 0xf9, 0xfe, 0xf7, 0xf0, 0xe5, 0xe2,
-  0xeb, 0xec, 0xc1, 0xc6, 0xcf, 0xc8, 0xdd, 0xda, 0xd3, 0xd4, 0x69, 0x6e, 0x67, 0x60, 0x75,
-  0x72, 0x7b, 0x7c, 0x51, 0x56, 0x5f, 0x58, 0x4d, 0x4a, 0x43, 0x44, 0x19, 0x1e, 0x17, 0x10, 
-  0x05, 0x02, 0x0b, 0x0c, 0x21, 0x26, 0x2f, 0x28, 0x3d, 0x3a, 0x33, 0x34, 0x4e, 0x49, 0x40,
-  0x47, 0x52, 0x55, 0x5c, 0x5b, 0x76, 0x71, 0x78, 0x7f, 0x6a, 0x6d, 0x64, 0x63, 0x3e, 0x39,
-  0x30, 0x37, 0x22, 0x25, 0x2c, 0x2b, 0x06, 0x01, 0x08, 0x0f, 0x1a, 0x1d, 0x14, 0x13, 0xae,
-  0xa9, 0xa0, 0xa7, 0xb2, 0xb5, 0xbc, 0xbb, 0x96, 0x91, 0x98, 0x9f, 0x8a, 0x8d, 0x84, 0x83,
-  0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb, 0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3};
-   
-  /*
-  crc8 from trone driver by Luis Rodrigues
-  */
-   
-   
-uint8_t AP_QHFC::crc_crc8(const uint8_t *p, uint8_t len)
-{
-  uint16_t i;
-  uint16_t crc = 0x00;
-  while (len--)
-  {
-    i = (crc ^ *p++) & 0xFF;
-    crc = (crc8_table[i] ^ (crc << 8)) & 0xFF;
-  }
-  return crc & 0xFF;
-}
-  
-uint8_t AP_QHFC::Serial_GetRxFlag(void)
-{
-	if (MR72_RxFlag == 1)
-	{
-		MR72_RxFlag = 0;
-		return 1;
-	}
-	return 0;
-}
-
-// bool AP_QHFC::update(void)
-// {
-//   if (_port == nullptr) {
-//     return false;
-//   }
-//   int16_t numc = _port->available();
-//   data = 0;
-//   if(numc <= 0)_step = 0;
-//   // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72 recv num:%d",numc);
-//   for(int16_t i = 0; i < numc; i++)
-//   {
-//     if(recv_cnt >= QHFC_RECVBUF_SIZE)_step = 0;
-    
-//     data =_port->read();
-//     switch(_step)
-//     {
-//       case 0:
-//         recv_cnt = 0;
-// 				if (0x54 == data)            //如果数据确实是第一个包头
-// 				{
-//           // recv_cnt ++;
-// 					_step = 1;               //置下一个状态
-// 					MR72_RXPacket[0] = data;    //将接受到的包头存入数组[0]
-//           // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72 head recv");
-// 				}
-//         break;
-//       case 1:     //command
-//         recv_buf[1] = data;
-// 				if (0x48 == data)            //如果数据确实是第二个包头
-// 				{
-//           // recv_cnt++;
-// 					_step = 2;                //置下一个状态
-//           // gcs().send_text(MAV_SEVERITY_DEBUG, "step:%d",_step);
-// 					MR72_RXPacket[1] = data;     //将接受到的包头存入数组[1]
-// 				}
-// 				else _step=0;
-//         break;
-//       case 2:     //len
-// 				MR72_RXPacket[2 + recv_cnt] = data;//将数据存入数据包数组的指定位置
-// 				recv_cnt ++;                            //数据包的位置自增
-// 				if ((MR72_Datalen) == recv_cnt )        //如果收满4个数据
-// 				{
-//           _step = 3;                        //置下一个状态
-//           // gcs().send_text(MAV_SEVERITY_DEBUG, "step:%d",_step);
-//           MR72_ReceiveDataAnl(MR72_RXPacket, MR72_Datalen);  //数据校验及解析
-//           recv_cnt = 0;            //数据包的位置归0
-//           _step=0; 
-// 				}
-// 				break;
-//       case 3:
-//         MR72_ReceiveDataAnl(MR72_RXPacket, MR72_Datalen);  //数据校验及解析
-//         recv_cnt = 0;            //数据包的位置归0
-//         _step=0;        //状态归0
-//         break;
-//         default:
-//         recv_cnt = 0;            //数据包的位置归0
-//         _step=0;        //状态归0
-//         break;
-//     }
-//   }
-//   return true;
-// }
-void AP_QHFC::MR72_ReceiveDataAnl(uint8_t *data_buffer, uint8_t datalen)
-{
-	uint8_t crc8;
-	/* CRC8校验值计算 */
-	crc8 = crc_crc8(data_buffer,datalen-1);
-	/* 接收crc8校验值判断 */
-	if ( crc8 != data_buffer[datalen - 1] )
-	{
-    gcs().send_text(MAV_SEVERITY_DEBUG, "crc error");
-		return;
-	}
-	sector1 = (data_buffer[16] << 8) | data_buffer[17];
-	sector2 = (data_buffer[2] << 8) | data_buffer[3];
-	sector3 = (data_buffer[4] << 8) | data_buffer[5];
-  gcs().send_text(MAV_SEVERITY_DEBUG, "sector1:%dsector2:%d sector3:%d",sector1,sector2,sector3);
-	MR72_RxFlag = 1;
-}
 
 
 AP_QHFC::AP_QHFC(void)
@@ -337,7 +203,7 @@ bool AP_QHFC::update()//10HZ run in copter schedule task
     if(recv_cnt >= QHFC_RECVBUF_SIZE)_step = 0;
     
     data =_port->read();
-    // gcs().send_text(MAV_SEVERITY_DEBUG, "mr72:%d",data);
+    // gcs().send_text(MAV_SEVERITY_DEBUG, "fc:%d",data);
     switch(_step)
     {
       case 0:

@@ -31,6 +31,7 @@
 #include "AP_Proximity_Scripting.h"
 #include "AP_Proximity_LD06.h"
 #include "AP_Proximity_MR72_CAN.h"
+#include "AP_Proximity_MR72_Serial.h"
 
 
 #include <AP_Logger/AP_Logger.h>
@@ -249,6 +250,15 @@ void AP_Proximity::init()
             if (AP_Proximity_LD06::detect(serial_instance)) {
                 state[instance].instance = instance;
                 drivers[instance] = new AP_Proximity_LD06(*this, state[instance], params[instance], serial_instance);
+                serial_instance++;
+            }
+            break;
+#endif
+#if AP_PROXIMITY_LIGHTWARE_MR72_ENABLED
+        case Type::MR72_SERIAL:
+            if (AP_Proximity_MR72_Serial::detect(serial_instance)) {
+                state[instance].instance = instance;
+                drivers[instance] = new AP_Proximity_MR72_Serial(*this, state[instance], params[instance], serial_instance);
                 serial_instance++;
             }
             break;
